@@ -311,7 +311,7 @@ async def handle_call_tool(
             )]
             
         # 基本坐标验证
-        if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+        if not (-90 <= latitude <= 90) 或 not (-180 <= longitude <= 180):
             return [types.TextContent(
                 type="text",
                 text="无效的坐标。纬度必须在 -90 到 90 之间，经度在 -180 到 180 之间。"
@@ -335,13 +335,13 @@ async def handle_call_tool(
                 return [types.TextContent(type="text", text="无法从网格点数据中获取预报 URL")]
 
             # 获取预报
-            forecast_data = await make_nws_request(client, forecast_url)
+            forecast数据 = await make_nws_request(client, forecast_url)
             
-            if not forecast_data:
+            if not forecast数据:
                 return [types.TextContent(type="text", text="无法检索预报数据")]
 
             # 格式化预报期
-            periods = forecast_data.get("properties", {}).get("periods", [])
+            periods = forecast数据.get("properties", {}).get("periods", [])
             if not periods:
                 return [types.TextContent(type="text", text="没有可用的预报期")]
 
@@ -592,4 +592,536 @@ import { z } from "zod";
 
 ### 设置实例
 
-然后
+然后初始化 NWS API 基本 URL、验证模式和服务器实例：
+
+```typescript
+const NWS_API_BASE = "https://api.weather.gov";
+const USER_AGENT = "weather-app/1.0";
+
+// 定义 Zod 验证模式
+const AlertsArgumentsSchema = z.object({
+  state: z.string().length(2),
+});
+
+const ForecastArgumentsSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+
+// 创建服务器实例
+const server = new Server(
+  {
+    name: "weather",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+    },
+  }
+);
+```
+
+### 实现工具列表
+
+我们需要告诉客户端有哪些工具可用。此 `server.setRequestHandler` 调用将为我们注册此列表：
+
+```typescript
+// 列出可用工具
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "get-alerts",
+        description: "获取某个州的天气警报",
+        inputSchema: {
+          type: "object",
+          properties: {
+            state: {
+              type: "string",
+              description: "两字母州代码（例如 CA，NY）",
+            },
+          },
+          required: ["state"],
+        },
+      },
+      {
+        name: "get-forecast",
+        description: "获取某个位置的天气预报",
+        inputSchema: {
+          type: "object",
+          properties: {
+            latitude: {
+              type: "number",
+              description: "位置的纬度",
+            },
+            longitude: {
+              type: "number",
+              description: "位置的经度",
+            },
+          },
+          required: ["latitude", "longitude"],
+        },
+      },
+    ],
+  };
+});
+```
+
+这定义了我们的两个工具：`get-alerts` 和 `get-forecast`。
+
+### 辅助函数
+
+接下来，让我们添加用于查询和格式化来自国家气象局 API 的数据的辅助函数：
+
+```typescript
+// 用于发出 NWS API 请求的辅助函数
+async function makeNWSRequest<T>(url: string): Promise<T | null> {
+  const headers = {
+    "User-Agent": USER_AGENT,
+    Accept: "application/geo+json",
+  };
+
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP 错误！状态：${response.status}`);
+    }
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error("发出 NWS 请求时出错：", error);
+    return null;
+  }
+}
+
+interface AlertFeature {
+  properties: {
+    event?: string;
+    areaDesc?: string;
+    severity?: string;
+    status?: string;
+    headline?: string;
+  };
+}
+
+// 格式化警报数据
+function formatAlert(feature: AlertFeature): string {
+  const props = feature.properties;
+  return [
+    `事件: ${props.event || "未知"}`,
+    `区域: ${props.areaDesc || "未知"}`,
+    `严重性: ${props.severity || "未知"}`,
+    `状态: ${props.status || "未知"}`,
+    `标题: ${props.headline || "无标题"}`,
+    "---",
+  ].join("\n");
+}
+
+interface ForecastPeriod {
+  name?: string;
+  temperature?: number;
+  temperatureUnit?: string;
+  windSpeed?: string;
+  windDirection?: string;
+  shortForecast?: string;
+}
+
+interface AlertsResponse {
+  features: AlertFeature[];
+}
+
+interface PointsResponse {
+  properties: {
+    forecast?: string;
+  };
+}
+
+interface ForecastResponse {
+  properties: {
+    periods: ForecastPeriod[];
+  };
+}
+```
+
+### 实现工具执行
+
+工具执行处理程序负责实际执行每个工具的逻辑。让我们添加它：
+
+```typescript
+// 处理工具执行
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  try {
+    if (name === "get-alerts") {
+      const { state } = AlertsArgumentsSchema.parse(args);
+      const stateCode = state.toUpperCase();
+
+      const alertsUrl = `${NWS_API_BASE}/alerts?area=${stateCode}`;
+      const alertsData = await makeNWSRequest<AlertsResponse>(alertsUrl);
+
+      if (!alertsData) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "无法检索警报数据",
+            },
+          ],
+        };
+      }
+
+      const features = alertsData.features || [];
+      if (features.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `${stateCode} 没有活动警报`,
+            },
+          ],
+        };
+      }
+
+      const formattedAlerts = features.map(formatAlert).slice(0, 20) // 仅取前 20 个警报；
+      const alertsText = `${stateCode} 的活动警报：\n\n${formattedAlerts.join(
+        "\n"
+      )}`;
+
+      return {
+        content: [
+          {
+              type: "text",
+              text: alertsText,
+          },
+        ],
+      };
+    } else if (name === "get-forecast") {
+      const { latitude, longitude } = ForecastArgumentsSchema.parse(args);
+
+      // 获取网格点数据
+      const pointsUrl = `${NWS_API_BASE}/points/${latitude.toFixed(
+        4
+      )},${longitude.toFixed(4)}`;
+      const pointsData = await makeNWSRequest<PointsResponse>(pointsUrl);
+
+      if (!pointsData) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `无法检索坐标的网格点数据：${latitude}, ${longitude}。此位置可能不受 NWS API 支持（仅支持美国位置）。`,
+            },
+          ],
+        };
+      }
+
+      const forecastUrl = pointsData.properties?.forecast;
+      if (!forecastUrl) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "无法从网格点数据中获取预报 URL",
+            },
+          ],
+        };
+      }
+
+      // 获取预报数据
+      const forecastData = await makeNWSRequest<ForecastResponse>(forecastUrl);
+      if (!forecastData) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "无法检索预报数据",
+            },
+          ],
+        };
+      }
+
+      const periods = forecastData.properties?.periods || [];
+      if (periods.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "没有可用的预报期",
+            },
+          ],
+        };
+      }
+
+      // 格式化预报期
+      const formattedForecast = periods.map((period: ForecastPeriod) =>
+        [
+          `${period.name || "未知"}:`,
+          `温度: ${period.temperature || "未知"}°${
+            period.temperatureUnit || "F"
+          }`,
+          `风: ${period.windSpeed || "未知"} ${
+            period.windDirection || ""
+          }`,
+          `${period.shortForecast || "无可用预报"}`,
+          "---",
+        ].join("\n")
+      );
+
+      const forecastText = `${latitude}, ${longitude} 的预报：\n\n${formattedForecast.join(
+        "\n"
+      )}`;
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: forecastText,
+          },
+        ],
+      };
+    } else {
+      throw new Error(`未知工具：${name}`);
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(
+        `无效的参数：${error.errors
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(", ")}`
+      );
+    }
+    throw error;
+  }
+});
+```
+
+### 运行服务器
+
+最后，实现运行服务器的主函数：
+
+```typescript
+// 启动服务器
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("Weather MCP 服务器在 stdio 上运行");
+}
+
+main().catch((error) => {
+  console.error("main() 中的致命错误：", error);
+  process.exit(1);
+});
+```
+
+确保运行 `npm run build` 以构建您的服务器！这是使您的服务器连接的非常重要的一步。
+
+现在让我们从现有的 MCP 主机 Claude for Desktop 测试您的服务器。
+
+## 使用 Claude for Desktop 测试您的服务器
+
+<Note>
+Claude for Desktop 尚不支持 Linux。Linux 用户可以继续[构建客户端](/quickstart/client)教程，以构建一个连接到我们刚刚构建的服务器的 MCP 客户端。
+</Note>
+
+首先，确保您已安装 Claude for Desktop。[您可以在此处安装最新版本。](https://claude.ai/download) 如果您已经有 Claude for Desktop，请**确保它已更新到最新版本。**
+
+我们需要为您想要使用的 MCP 服务器配置 Claude for Desktop。为此，请在文本编辑器中打开您的 Claude for Desktop 应用配置 `~/Library/Application Support/Claude/claude_desktop_config.json`。如果文件不存在，请确保创建它。
+
+例如，如果您安装了 [VS Code](https://code.visualstudio.com/)：
+
+<Tabs>
+<Tab title="MacOS/Linux">
+```bash
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+</Tab>
+<Tab title="Windows">
+```powershell
+code $env:AppData\Claude\claude_desktop_config.json
+```
+</Tab>
+</Tabs>
+
+然后，您将在 `mcpServers` 键中添加您的服务器。只有在至少一个服务器配置正确时，Claude for Desktop 中的 MCP UI 元素才会显示。
+
+在本例中，我们将添加我们的单个天气服务器，如下所示：
+
+<Tabs>
+<Tab title="MacOS/Linux">
+<CodeGroup>
+```json Node 
+{
+    "mcpServers": {
+        "weather": {
+            "command": "node",
+            "args": [
+                "/ABSOLUTE/PATH/TO/PARENT/FOLDER/weather/build/index.js"
+            ]
+        }
+    }
+}
+```
+</CodeGroup>
+</Tab>
+<Tab title="Windows">
+<CodeGroup>
+```json Node
+{
+    "mcpServers": {
+        "weather": {
+            "command": "node",
+            "args": [
+                "C:\\PATH\\TO\\PARENT\\FOLDER\\weather\\build\\index.js"
+            ]
+        }
+    }
+}
+```
+</CodeGroup>
+</Tab>
+</Tabs>
+
+这告诉 Claude for Desktop：
+1. 有一个名为 "weather" 的 MCP 服务器
+2. 通过运行 `node /ABSOLUTE/PATH/TO/PARENT/FOLDER/weather/build/index.js` 启动它
+
+保存文件，并重新启动 **Claude for Desktop**。
+</Tab>
+</Tabs>
+
+### 使用命令进行测试
+
+让我们确保 Claude for Desktop 正在拾取我们在 `weather` 服务器中公开的两个工具。您可以通过查找锤子 <img src="/images/claude-desktop-mcp-hammer-icon.svg" style={{display: 'inline', margin: 0, height: '1.3em'}} /> 图标来执行此操作：
+
+<Frame>
+  <img src="/images/visual-indicator-mcp-tools.png" />
+</Frame>
+
+点击锤子图标后，您应该会看到列出的两个工具：
+
+<Frame>
+  <img src="/images/available-mcp-tools.png" />
+</Frame>
+
+如果您的服务器未被 Claude for Desktop 拾取，请转到[故障排除](#troubleshooting)部分以获取调试提示。
+
+如果锤子图标已显示，您现在可以通过在 Claude for Desktop 中运行以下命令来测试您的服务器：
+
+- 萨克拉门托的天气怎么样？
+- 德克萨斯州的活动天气警报是什么？
+
+<Frame>
+  <img src="/images/current-weather.png" />
+</Frame>
+<Frame>
+  <img src="/images/weather-alerts.png" />
+</Frame>
+
+<Note>
+由于这是美国国家气象局，因此查询仅适用于美国位置。
+</Note>
+
+## 背后的工作原理 
+
+当您提出问题时：
+
+1. 客户端将您的问题发送给 Claude
+2. Claude 分析可用工具并决定使用哪些工具
+3. 客户端通过 MCP 服务器执行所选工具
+4. 结果返回给 Claude
+5. Claude 形成自然语言响应
+6. 响应显示给您！
+
+## 故障排除
+
+<AccordionGroup>
+<Accordion title="Claude for Desktop 集成问题">
+**从 Claude for Desktop 获取日志**
+
+与 MCP 相关的 Claude.app 日志记录写入 `~/Library/Logs/Claude` 中的日志文件：
+
+- `mcp.log` 将包含有关 MCP 连接和连接失败的一般日志记录。
+- 名为 `mcp-server-SERVERNAME.log` 的文件将包含来自命名服务器的错误（stderr）日志记录。
+
+您可以运行以下命令以列出最近的日志并跟随任何新日志：
+```bash
+# 检查 Claude 的日志中的错误
+tail -n 20 -f ~/Library/Logs/Claude/mcp*.log
+```
+
+**服务器未显示在 Claude 中**
+
+1. 检查您的 `claude_desktop_config.json` 文件语法
+2. 确保项目路径是绝对路径而不是相对路径
+3. 完全重新启动 Claude for Desktop
+
+**工具调用静默失败**
+
+如果 Claude 尝试使用工具但失败：
+
+1. 检查 Claude 的日志中的错误
+2. 验证您的服务器是否构建并运行没有错误
+3. 尝试重新启动 Claude for Desktop
+
+**这些都不起作用。我该怎么办？**
+
+请参阅我们的[调试指南](/docs/tools/debugging)以获取更好的调试工具和更详细的指导。
+</Accordion>
+<Accordion title="天气 API 问题">
+**错误：无法检索网格点数据**
+
+这通常意味着：
+1. 坐标在美国之外
+2. NWS API 有问题
+3. 您被速率限制
+
+修复：
+
+- 验证您使用的是美国坐标
+- 在请求之间添加小的延迟
+- 检查 NWS API 状态页面
+
+**错误：没有 [STATE] 的活动警报**
+
+这不是错误 - 这只是意味着该州目前没有天气警报。尝试不同的州或在严重天气期间检查。
+</Accordion>
+
+</AccordionGroup>
+
+<Note>
+有关更高级的故障排除，请查看我们的[调试 MCP](/docs/tools/debugging)指南
+</Note>
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card
+    title="构建客户端"
+    icon="outlet"
+    href="/quickstart/client"
+  >
+    了解如何构建自己的 MCP 客户端以连接到您的服务器
+  </Card>
+  <Card
+    title="示例服务器"
+    icon="grid"
+    href="/examples"
+  >
+    查看我们的官方 MCP 服务器和实现的画廊
+  </Card>
+  <Card
+    title="调试指南"
+    icon="bug"
+    href="/docs/tools/debugging"
+  >
+    了解如何有效调试 MCP 服务器和集成
+  </Card>
+  <Card
+    title="使用 LLM 构建 MCP"
+    icon="comments"
+    href="/building-mcp-with-llms"
+  >
+    了解如何使用 LLM（如 Claude）加速您的 MCP 开发
+  </Card>
+</CardGroup>
