@@ -1,23 +1,23 @@
 ---
-title: "Example Clients"
-description: "A list of applications that support MCP integrations"
+title: "示例客户端"
+description: "支持 MCP 集成的应用程序列表"
 ---
 
-This page provides an overview of applications that support the Model Context Protocol (MCP). Each client may support different MCP features, allowing for varying levels of integration with MCP servers.
+此页面提供了支持模型上下文协议（MCP）的应用程序概述。每个客户端可能支持不同的 MCP 功能，允许与 MCP 服务器进行不同级别的集成。
 
-## Feature support matrix
+## 功能支持矩阵
 
-| Client                    | [Resources] | [Prompts] | [Tools] | [Sampling] | Roots | Notes                                             |
+| 客户端                    | [资源] | [提示] | [工具] | [采样] | 根 | 备注                                             |
 |---------------------------|-------------|-----------|---------|------------|-------|---------------------------------------------------|
-| [Claude Desktop App][Claude] | ✅         | ✅         | ✅       | ❌          | ❌     | Full support for all MCP features            |
-| [Zed][Zed]                | ❌         | ✅         | ❌       | ❌          | ❌     | Prompts appear as slash commands                  |
-| [Sourcegraph Cody][Cody]  | ✅         | ❌         | ❌       | ❌          | ❌     | Supports resources through OpenCTX                |
-| [Firebase Genkit][Genkit] | ⚠️         | ✅         | ✅       | ❌          | ❌     | Supports resource list and lookup through tools.  |
-| [Continue][Continue]      | ✅         | ✅         | ✅       | ❌          | ❌     | Full support for all MCP features                 |
-| [GenAIScript][GenAIScript]  | ❌         | ❌         | ✅       | ❌          | ❌     | Supports tools. |
-| [Cline][Cline]      | ✅         | ❌         | ✅       | ❌          | ❌     | Supports tools and resources.                 |
-| [LibreChat][LibreChat]     | ❌         | ❌         | ✅       | ❌          | ❌     | Supports tools for Agents    |
-| [TheiaAI/TheiaIDE][TheiaAI/TheiaIDE]     | ❌         | ❌         | ✅       | ❌          | ❌     | Supports tools for Agents in Theia AI and the AI-powered Theia IDE    |
+| [Claude 桌面应用][Claude] | ✅         | ✅         | ✅       | ❌          | ❌     | 完全支持所有 MCP 功能            |
+| [Zed][Zed]                | ❌         | ✅         | ❌       | ❌          | ❌     | 提示以斜杠命令形式出现                  |
+| [Sourcegraph Cody][Cody]  | ✅         | ❌         | ❌       | ❌          | ❌     | 通过 OpenCTX 支持资源                |
+| [Firebase Genkit][Genkit] | ⚠️         | ✅         | ✅       | ❌          | ❌     | 通过工具支持资源列表和查找  |
+| [Continue][Continue]      | ✅         | ✅         | ✅       | ❌          | ❌     | 完全支持所有 MCP 功能                 |
+| [GenAIScript][GenAIScript]  | ❌         | ❌         | ✅       | ❌          | ❌     | 支持工具。 |
+| [Cline][Cline]      | ✅         | ❌         | ✅       | ❌          | ❌     | 支持工具和资源。                 |
+| [LibreChat][LibreChat]     | ❌         | ❌         | ✅       | ❌          | ❌     | 支持代理工具    |
+| [TheiaAI/TheiaIDE][TheiaAI/TheiaIDE]     | ❌         | ❌         | ✅       | ❌          | ❌     | 支持 Theia AI 和 AI 驱动的 Theia IDE 中的代理工具    |
 
 [Claude]: https://claude.ai/download
 [Zed]: https://zed.dev
@@ -29,111 +29,97 @@ This page provides an overview of applications that support the Model Context Pr
 [LibreChat]: https://github.com/danny-avila/LibreChat
 [TheiaAI/TheiaIDE]: https://eclipsesource.com/blogs/2024/12/19/theia-ide-and-theia-ai-support-mcp/
 
-[Resources]: https://modelcontextprotocol.io/docs/concepts/resources
-[Prompts]: https://modelcontextprotocol.io/docs/concepts/prompts
-[Tools]: https://modelcontextprotocol.io/docs/concepts/tools
-[Sampling]: https://modelcontextprotocol.io/docs/concepts/sampling
+[资源]: https://modelcontextprotocol.io/docs/concepts/resources
+[提示]: https://modelcontextprotocol.io/docs/concepts/prompts
+[工具]: https://modelcontextprotocol.io/docs/concepts/tools
+[采样]: https://modelcontextprotocol.io/docs/concepts/sampling
 
-## Client details
+## 客户端详情
 
-### Claude Desktop App
-The Claude desktop application provides comprehensive support for MCP, enabling deep integration with local tools and data sources.
+### Claude 桌面应用
+Claude 桌面应用程序提供全面的 MCP 支持，允许与本地工具和数据源进行深度集成。
 
-**Key features:**
-- Full support for resources, allowing attachment of local files and data
-- Support for prompt templates
-- Tool integration for executing commands and scripts
-- Local server connections for enhanced privacy and security
+**主要功能:**
+- 完全支持资源，允许附加本地文件和数据
+- 支持提示模板
+- 工具集成，用于执行命令和脚本
+- 本地服务器连接，增强隐私和安全性
 
-> ⓘ Note: The Claude.ai web application does not currently support MCP. MCP features are only available in the desktop application.
+> ⓘ 注意: Claude.ai 网络应用程序目前不支持 MCP。MCP 功能仅在桌面应用程序中可用。
 
 ### Zed
-[Zed](https://zed.dev/docs/assistant/model-context-protocol) is a high-performance code editor with built-in MCP support, focusing on prompt templates and tool integration.
+[Zed](https://zed.dev/docs/assistant/model-context-protocol) 是一个高性能代码编辑器，内置 MCP 支持，专注于提示模板和工具集成。
 
-**Key features:**
-- Prompt templates surface as slash commands in the editor
-- Tool integration for enhanced coding workflows
-- Tight integration with editor features and workspace context
-- Does not support MCP resources
+**主要功能:**
+- 提示模板以斜杠命令形式在编辑器中显示
+- 工具集成，增强编码工作流程
+- 与编辑器功能和工作区上下文紧密集成
+- 不支持 MCP 资源
 
 ### Sourcegraph Cody
-[Cody](https://openctx.org/docs/providers/modelcontextprotocol) is Sourcegraph's AI coding assistant, which implements MCP through OpenCTX.
+[Cody](https://openctx.org/docs/providers/modelcontextprotocol) 是 Sourcegraph 的 AI 编码助手，通过 OpenCTX 实现 MCP。
 
-**Key features:**
-- Support for MCP resources
-- Integration with Sourcegraph's code intelligence
-- Uses OpenCTX as an abstraction layer
-- Future support planned for additional MCP features
+**主要功能:**
+- 支持 MCP 资源
+- 与 Sourcegraph 的代码智能集成
+- 使用 OpenCTX 作为抽象层
+- 计划未来支持更多 MCP 功能
 
 ### Firebase Genkit
-[Genkit](https://github.com/firebase/genkit) is Firebase's SDK for building and integrating GenAI features into applications. The [genkitx-mcp](https://github.com/firebase/genkit/tree/main/js/plugins/mcp) plugin enables consuming MCP servers as a client or creating MCP servers from Genkit tools and prompts.
+[Genkit](https://github.com/firebase/genkit) 是 Firebase 的 SDK，用于在应用程序中构建和集成 GenAI 功能。 [genkitx-mcp](https://github.com/firebase/genkit/tree/main/js/plugins/mcp) 插件允许作为客户端消费 MCP 服务器或从 Genkit 工具和提示创建 MCP 服务器。
 
-**Key features:**
-- Client support for tools and prompts (resources partially supported)
-- Rich discovery with support in Genkit's Dev UI playground
-- Seamless interoperability with Genkit's existing tools and prompts
-- Works across a wide variety of GenAI models from top providers
+**主要功能:**
+- 客户端支持工具和提示（部分支持资源）
+- 在 Genkit 的开发 UI 游乐场中支持丰富的发现
+- 与 Genkit 现有工具和提示无缝互操作
+- 适用于各种顶级提供商的 GenAI 模型
 
 ### Continue
-[Continue](https://github.com/continuedev/continue) is an open-source AI code assistant, with built-in support for all MCP features.
+[Continue](https://github.com/continuedev/continue) 是一个开源 AI 代码助手，内置对所有 MCP 功能的支持。
 
-**Key features**
-- Type "@" to mention MCP resources
-- Prompt templates surface as slash commands
-- Use both built-in and MCP tools directly in chat
-- Supports VS Code and JetBrains IDEs, with any LLM
+**主要功能**
+- 输入 "@" 提及 MCP 资源
+- 提示模板以斜杠命令形式显示
+- 在聊天中直接使用内置和 MCP 工具
+- 支持 VS Code 和 JetBrains IDE，适用于任何 LLM
 
 ### GenAIScript
-Programmatically assemble prompts for LLMs using [GenAIScript](https://microsoft.github.io/genaiscript/) (in JavaScript). Orchestrate LLMs, tools, and data in JavaScript.
+使用 [GenAIScript](https://microsoft.github.io/genaiscript/)（在 JavaScript 中）以编程方式组装 LLM 提示。 在 JavaScript 中编排 LLM、工具和数据。
 
-**Key features:**
-- JavaScript toolbox to work with prompts
-- Abstraction to make it easy and productive
-- Seamless Visual Studio Code integration
+**主要功能:**
+- JavaScript 工具箱，用于处理提示
+- 抽象使其易于使用和高效
+- 无缝的 Visual Studio Code 集成
 
 ### Cline
-[Cline](https://github.com/cline/cline) is an autonomous coding agent in VS Code that edits files, runs commands, uses a browser, and more–with your permission at each step.
+[Cline](https://github.com/cline/cline) 是 VS Code 中的自主编码代理，编辑文件、运行命令、使用浏览器等–每一步都需要您的许可。
 
-**Key features:**
-- Create and add tools through natural language (e.g. "add a tool that searches the web")
-- Share custom MCP servers Cline creates with others via the `~/Documents/Cline/MCP` directory
-- Displays configured MCP servers along with their tools, resources, and any error logs
+**主要功能:**
+- 通过自然语言创建和添加工具（例如“添加一个搜索网络的工具”）
+- 通过 `~/Documents/Cline/MCP` 目录与他人共享 Cline 创建的自定义 MCP 服务器
+- 显示配置的 MCP 服务器及其工具、资源和任何错误日志
 
 ### LibreChat
-[LibreChat](https://github.com/danny-avila/LibreChat) is an open-source, customizable AI chat UI that supports multiple AI providers, now including MCP integration.
+[LibreChat](https://github.com/danny-avila/LibreChat) 是一个开源、可定制的 AI 聊天 UI，支持多个 AI 提供商，现在包括 MCP 集成。
 
-**Key features:**
-- Extend current tool ecosystem, including [Code Interpreter](https://www.librechat.ai/docs/features/code_interpreter) and Image generation tools, through MCP servers
-- Add tools to customizable [Agents](https://www.librechat.ai/docs/features/agents), using a variety of LLMs from top providers
-- Open-source and self-hostable, with secure multi-user support
-- Future roadmap includes expanded MCP feature support
+**主要功能:**
+- 通过 MCP 服务器扩展当前工具生态系统，包括 [代码解释器](https://www.librechat.ai/docs/features/code_interpreter) 和图像生成工具
+- 使用顶级提供商的各种 LLM 向可定制的 [代理](https://www.librechat.ai/docs/features/agents) 添加工具
+- 开源和可自托管，支持安全的多用户
+- 未来路线图包括扩展 MCP 功能支持
 
 ### TheiaAI/TheiaIDE
-[Theia AI](https://eclipsesource.com/blogs/2024/10/07/introducing-theia-ai/) is a framework for building AI-enhanced tools and IDEs. The [AI-powered Theia IDE](https://eclipsesource.com/blogs/2024/10/08/introducting-ai-theia-ide/) is an open and flexible development environment built on Theia AI.
+[Theia AI](https://eclipsesource.com/blogs/2024/10/07/introducing-theia-ai/) 是一个用于构建 AI 增强工具和 IDE 的框架。 [AI 驱动的 Theia IDE](https://eclipsesource.com/blogs/2024/10/08/introducting-ai-theia-ide/) 是一个基于 Theia AI 构建的开放和灵活的开发环境。
 
-**Key features:**
-- **Tool Integration**: Theia AI enables AI agents, including those in the Theia IDE, to utilize MCP servers for seamless tool interaction.
-- **Customizable Prompts**: The Theia IDE allows users to define and adapt prompts, dynamically integrating MCP servers for tailored workflows.
-- **Custom agents**: The Theia IDE supports creating custom agents that leverage MCP capabilities, enabling users to design dedicated workflows on the fly.
+**主要功能:**
+- **工具集成**: Theia AI 使 AI 代理，包括 Theia IDE 中的代理，能够利用 MCP 服务器进行无缝工具交互。
+- **可定制的提示**: Theia IDE 允许用户定义和调整提示，动态集成 MCP 服务器以实现定制工作流程。
+- **自定义代理**: Theia IDE 支持创建利用 MCP 功能的自定义代理，使用户能够即时设计专用工作流程。
 
-Theia AI and Theia IDE's MCP integration provide users with flexibility, making them powerful platforms for exploring and adapting MCP.
+Theia AI 和 Theia IDE 的 MCP 集成为用户提供了灵活性，使其成为探索和适应 MCP 的强大平台。
 
-**Learn more:**
-- [Theia IDE and Theia AI MCP Announcement](https://eclipsesource.com/blogs/2024/12/19/theia-ide-and-theia-ai-support-mcp/)
-- [Download the AI-powered Theia IDE](https://theia-ide.org/)
+**了解更多:**
+- [Theia IDE 和 Theia AI MCP 公告](https://eclipsesource.com/blogs/2024/12/19/theia-ide-and-theia-ai-support-mcp/)
+- [下载 AI 驱动的 Theia IDE](https://theia-ide.org/)
 
-## Adding MCP support to your application
 
-If you've added MCP support to your application, we encourage you to submit a pull request to add it to this list. MCP integration can provide your users with powerful contextual AI capabilities and make your application part of the growing MCP ecosystem.
-
-Benefits of adding MCP support:
-- Enable users to bring their own context and tools
-- Join a growing ecosystem of interoperable AI applications
-- Provide users with flexible integration options
-- Support local-first AI workflows
-
-To get started with implementing MCP in your application, check out our [Python](https://github.com/modelcontextprotocol/python-sdk) or [TypeScript SDK Documentation](https://github.com/modelcontextprotocol/typescript-sdk)
-
-## Updates and corrections
-
-This list is maintained by the community. If you notice any inaccuracies or would like to update information about MCP support in your application, please submit a pull request or [open an issue in our documentation repository](https://github.com/modelcontextprotocol/docs/issues).
